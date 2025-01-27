@@ -1,0 +1,112 @@
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import ClienteTable from "./ClienteTable";
+import AddClienteModal from "./AddClienteModal";
+import EditClienteModal from "./EditClienteModal";
+import ConfirmDeleteModal from "./ConfirmDeleteModal";
+import Toast from "./Toast";
+
+const API_URL = "http://localhost:8080/cm-app/clientes";
+
+const ClienteApp = () => {
+  const [clientes, setClientes] = useState([]);
+  const [selectedCliente, setSelectedCliente] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null);
+
+  // Obtener clientes del backend
+  const fetchClientes = async () => {
+    try {
+      const response = await axios.get(API_URL);
+      const sortedClientes = response.data.sort((a, b) => a.nombre.localeCompare(b.nombre));
+      setClientes(sortedClientes);
+    } catch (error) {
+      console.error("Error al obtener los clientes", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchClientes();
+  }, []);
+
+  // Eliminar cliente
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`${API_URL}/${id}`);
+      fetchClientes();
+      setToastMessage("Cliente eliminado exitosamente");
+      setShowDeleteModal(false);
+    } catch (error) {
+      console.error("Error al eliminar el cliente", error);
+    }
+  };
+
+  const closeToast = () => setToastMessage(null);
+
+  return (
+    <div className="container mt-4 position-relative">
+      <h1 className="text-center mb-4">Gestor de Clientes</h1>
+
+      {/* Botón de agregar nuevo cliente */}
+      <div className="mb-3 text-end">
+        <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
+          Agregar Nuevo Cliente
+        </button>
+      </div>
+
+      {/* Tabla de clientes */}
+      <ClienteTable
+        clientes={clientes}
+        onEdit={(cliente) => {
+          setSelectedCliente(cliente);
+          setShowEditModal(true);
+        }}
+        onDelete={(cliente) => {
+          setSelectedCliente(cliente);
+          setShowDeleteModal(true);
+        }}
+      />
+
+      {/* Modal para agregar cliente */}
+      {showAddModal && (
+        <AddClienteModal
+          onClose={() => setShowAddModal(false)}
+          onSave={() => {
+            fetchClientes();
+            setToastMessage("Cliente registrado exitosamente");
+            setShowAddModal(false);
+          }}
+        />
+      )}
+
+      {/* Modal para editar cliente */}
+      {showEditModal && selectedCliente && (
+        <EditClienteModal
+          cliente={selectedCliente}
+          onClose={() => setShowEditModal(false)}
+          onSave={() => {
+            fetchClientes();
+            setToastMessage("Cliente editado exitosamente");
+            setShowEditModal(false);
+          }}
+        />
+      )}
+
+      {/* Modal para confirmar eliminación */}
+      {showDeleteModal && selectedCliente && (
+        <ConfirmDeleteModal
+          cliente={selectedCliente}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={() => handleDelete(selectedCliente.idCliente)}
+        />
+      )}
+
+      {/* Toast para feedback */}
+      {toastMessage && <Toast message={toastMessage} onClose={closeToast} />}
+    </div>
+  );
+};
+
+export default ClienteApp;
