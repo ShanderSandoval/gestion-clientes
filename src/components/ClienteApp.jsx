@@ -6,7 +6,7 @@ import EditClienteModal from "./EditClienteModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import Toast from "./Toast";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/cm-app/clientes";
+const API_URL = window.env?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || "http://localhost:8080/cm-app/clientes";
 
 console.log("API_URL en React:", API_URL); // 🔍 Verifica en la consola si React está tomando la URL correcta
 

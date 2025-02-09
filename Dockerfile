@@ -1,26 +1,21 @@
-# Construir la app de React
+# Construcción de React
 FROM node:18-alpine AS build
-
 WORKDIR /app
 
-# Copia archivos necesarios
+# Copiar archivos y construir la aplicación
 COPY package.json package-lock.json ./
 RUN npm install
-
 COPY . .
-
-# Inyectar la variable de entorno al build
-ARG REACT_APP_API_URL
-ENV REACT_APP_API_URL=${REACT_APP_API_URL}
-
-# Construir la aplicación
 RUN npm run build
 
-# Usar Nginx para servir la app
+# Fase final con Nginx
 FROM nginx:alpine
-COPY --from=build /app/build /usr/share/nginx/html
+WORKDIR /usr/share/nginx/html
+COPY --from=build /app/build .
+
+# Agregar el archivo env.js para que React lo lea en tiempo de ejecución
+COPY env.js ./env.js
 
 # Exponer el puerto 80
 EXPOSE 80
-
 CMD ["nginx", "-g", "daemon off;"]

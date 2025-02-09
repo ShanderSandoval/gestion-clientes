@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/cm-app/clientes";
+const API_URL = window.env?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || "http://localhost:8080/cm-app/clientes";
 
 const AddClienteModal = ({ onClose, onSave }) => {
   const [formData, setFormData] = useState({
