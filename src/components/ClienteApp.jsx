@@ -1,26 +1,21 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import ClienteTable from "./ClienteTable";
-import AddClienteModal from "./AddClienteModal";
-import EditClienteModal from "./EditClienteModal";
-import ConfirmDeleteModal from "./ConfirmDeleteModal";
-import Toast from "./Toast";
 
-// Función para cargar `env.js` en tiempo de ejecución
-const loadEnvConfig = async () => {
-  try {
-    const response = await fetch("/env.js"); // Carga `env.js` desde el servidor Nginx
-    const scriptText = await response.text();
-    eval(scriptText); // Evalúa el contenido de `env.js` y define `window.env`
-    console.log("Configuración cargada:", window.env);
-  } catch (error) {
-    console.error("Error al cargar `env.js`", error);
+// Obtener automáticamente la IP del backend basada en la ubicación del frontend
+const getBackendUrl = () => {
+  let host = window.location.hostname; // Obtiene la IP o dominio donde se ejecuta el frontend
+
+  // Si está en localhost, usa la IP local del backend
+  if (host === "localhost") {
+    return "http://localhost:8080/cm-app/clientes";
   }
+
+  // Si el frontend está en otro equipo o en Docker, usa la misma IP del frontend
+  return `http://${host}:8080/cm-app/clientes`;
 };
 
-
-
 const ClienteApp = () => {
+  const [API_URL, setApiUrl] = useState(getBackendUrl()); // Se obtiene la IP automáticamente
   const [clientes, setClientes] = useState([]);
   const [selectedCliente, setSelectedCliente] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -32,6 +27,7 @@ const ClienteApp = () => {
   // Obtener clientes del backend
   const fetchClientes = async () => {
     try {
+      console.log("Conectando a API en:", API_URL);
       const response = await axios.get(API_URL);
       const sortedClientes = response.data.sort((a, b) => a.nombre.localeCompare(b.nombre));
       setClientes(sortedClientes);
@@ -42,7 +38,7 @@ const ClienteApp = () => {
 
   useEffect(() => {
     fetchClientes();
-  }, []);
+  }, [API_URL]); // Ejecutar cuando API_URL cambie
 
   // Eliminar cliente
   const handleDelete = async (id) => {

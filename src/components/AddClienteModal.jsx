@@ -1,18 +1,20 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-// Función para cargar `env.js` en tiempo de ejecución
-const loadEnvConfig = async () => {
-  try {
-    const response = await fetch("/env.js"); // Carga `env.js` desde el servidor Nginx
-    const scriptText = await response.text();
-    eval(scriptText); // Evalúa el contenido de `env.js` y define `window.env`
-    console.log("Configuración cargada:", window.env);
-  } catch (error) {
-    console.error("Error al cargar `env.js`", error);
+// Obtener automáticamente la IP del backend basada en el hostname
+const getBackendUrl = () => {
+  let host = window.location.hostname; // Obtiene la IP o dominio donde se ejecuta el frontend
+
+  // Si está en localhost, usa la IP local del backend
+  if (host === "localhost") {
+    return "http://localhost:8080/cm-app/clientes";
   }
+
+  // Si el frontend está en otro equipo o en Docker, usa la misma IP del frontend
+  return `http://${host}:8080/cm-app/clientes`;
 };
 
+const API_URL = getBackendUrl();
 
 const AddClienteModal = ({ onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -63,6 +65,7 @@ const AddClienteModal = ({ onClose, onSave }) => {
       return;
     }
     try {
+      console.log(`Enviando datos a ${API_URL}`);
       await axios.post(API_URL, formData);
       onSave();
     } catch (error) {
