@@ -6,17 +6,18 @@ import EditClienteModal from "./EditClienteModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import Toast from "./Toast";
 
-// Cargar `env.js` dinámicamente en tiempo de ejecución
+// Función para cargar `env.js` en tiempo de ejecución
 const loadEnvConfig = async () => {
   try {
     const response = await fetch("/env.js"); // Carga `env.js` desde el servidor Nginx
     const scriptText = await response.text();
-    eval(scriptText); // Evalúa el contenido de `env.js` para definir `window.env`
+    eval(scriptText); // Evalúa el contenido de `env.js` y define `window.env`
     console.log("Configuración cargada:", window.env);
   } catch (error) {
     console.error("Error al cargar `env.js`", error);
   }
 };
+
 
 
 const ClienteApp = () => {
