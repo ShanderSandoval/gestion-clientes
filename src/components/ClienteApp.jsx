@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import ClienteTable from "./ClienteTable";
+import AddClienteModal from "./AddClienteModal";
+import EditClienteModal from "./EditClienteModal";
+import ConfirmDeleteModal from "./ConfirmDeleteModal";
+import Toast from "./Toast";
 
 // Obtener automáticamente la IP del backend basada en la ubicación del frontend
 const getBackendUrl = () => {
