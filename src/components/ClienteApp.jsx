@@ -6,9 +6,17 @@ import EditClienteModal from "./EditClienteModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import Toast from "./Toast";
 
-const API_URL = window.env?.REACT_APP_API_URL || process.env.REACT_APP_API_URL || "http://localhost:8080/cm-app/clientes";
-
-console.log("API_URL en React:", API_URL); // 🔍 Verifica en la consola si React está tomando la URL correcta
+// Cargar `env.js` dinámicamente en tiempo de ejecución
+const loadEnvConfig = async () => {
+  try {
+    const response = await fetch("/env.js"); // Carga `env.js` desde el servidor Nginx
+    const scriptText = await response.text();
+    eval(scriptText); // Evalúa el contenido de `env.js` para definir `window.env`
+    console.log("Configuración cargada:", window.env);
+  } catch (error) {
+    console.error("Error al cargar `env.js`", error);
+  }
+};
 
 
 const ClienteApp = () => {
