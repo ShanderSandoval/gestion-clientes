@@ -6,7 +6,7 @@ import EditClienteModal from "./EditClienteModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import Toast from "./Toast";
 
-const API_URL = "http://localhost:8080/cm-app/clientes";
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/cm-app/clientes";
 
 const ClienteApp = () => {
   const [clientes, setClientes] = useState([]);
