@@ -15,6 +15,7 @@ const ClienteApp = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Obtener clientes del backend
   const fetchClientes = async () => {
@@ -47,18 +48,30 @@ const ClienteApp = () => {
 
   return (
     <div className="container mt-4 position-relative">
-      <h1 className="text-center mb-4">Gestor de Clientes</h1>
+      <h1 className="text-center mb-4">MANAGE UCE</h1>
 
-      {/* Botón de agregar nuevo cliente */}
-      <div className="mb-3 text-end">
+      {/* 🔹 Contenedor del botón y buscador alineados */}
+      <div className="d-flex justify-content-between align-items-center mb-3">
         <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
           Agregar Nuevo Cliente
         </button>
+        <input
+          type="text"
+          className="form-control w-25"
+          placeholder="Buscar Cliente"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
 
-      {/* Tabla de clientes */}
+      {/* Tabla de clientes con filtrado */}
       <ClienteTable
-        clientes={clientes}
+        clientes={clientes.filter((cliente) =>
+          cliente.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          cliente.cedula.includes(searchTerm) ||
+          cliente.direccion.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          cliente.celular.includes(searchTerm)
+        )}
         onEdit={(cliente) => {
           setSelectedCliente(cliente);
           setShowEditModal(true);
