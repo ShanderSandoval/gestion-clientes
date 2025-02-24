@@ -3,14 +3,12 @@ import axios from "axios";
 
 // 📌 Obtener automáticamente la IP del backend basada en el hostname
 const getBackendUrl = () => {
-  let host = window.location.hostname; // Obtiene la IP o dominio donde se ejecuta el frontend
+  let host = window.location.hostname;
 
-  // Si está en localhost, usa la IP local del backend
   if (host === "localhost") {
     return "http://localhost:8080/cm-app/direcciones";
   }
 
-  // Si el frontend está en otro equipo o en Docker, usa la misma IP del frontend
   return `http://${host}:8080/cm-app/direcciones`;
 };
 
@@ -52,8 +50,11 @@ const ClienteDireccionesModal = ({ cliente, onClose, onUpdateCliente }) => {
     }
   };
 
-  // Eliminar dirección
+  // Confirmación antes de eliminar dirección
   const handleEliminarDireccion = async (idDetalleDireccion) => {
+    const confirmDelete = window.confirm("¿Está seguro que desea eliminar esta dirección?");
+    if (!confirmDelete) return; // Si el usuario cancela, no hace nada
+
     try {
       await axios.delete(`${API_URL}/${idDetalleDireccion}`);
       const nuevasDirecciones = direcciones.filter(dir => dir.idDetalleDireccion !== idDetalleDireccion);
