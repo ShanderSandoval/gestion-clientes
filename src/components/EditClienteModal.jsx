@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-// Obtener automáticamente la IP del backend basada en el hostname
+// 📌 Obtener automáticamente la IP del backend basada en el hostname
 const getBackendUrl = () => {
   let host = window.location.hostname; // Obtiene la IP o dominio donde se ejecuta el frontend
 
@@ -17,7 +17,11 @@ const getBackendUrl = () => {
 const API_URL = getBackendUrl();
 
 const EditClienteModal = ({ cliente, onClose, onSave }) => {
-  const [formData, setFormData] = useState({ ...cliente });
+  const [formData, setFormData] = useState({
+    nombre: cliente.nombre,
+    cedula: cliente.cedula,
+    celular: cliente.celular, // 🔹 Eliminamos `direccion`
+  });
   const [errors, setErrors] = useState({});
 
   // Manejar cambios en los inputs con validación
@@ -63,8 +67,8 @@ const EditClienteModal = ({ cliente, onClose, onSave }) => {
       return;
     }
     try {
-      console.log(`Actualizando cliente en ${API_URL}/${formData.idCliente}`);
-      await axios.put(`${API_URL}/${formData.idCliente}`, formData);
+      console.log(`Actualizando cliente en ${API_URL}/${cliente.idCliente}`);
+      await axios.put(`${API_URL}/${cliente.idCliente}`, formData);
       onSave();
       onClose();
     } catch (error) {
@@ -106,15 +110,6 @@ const EditClienteModal = ({ cliente, onClose, onSave }) => {
                   required
                 />
                 {errors.cedula && <div className="invalid-feedback">{errors.cedula}</div>}
-                <input
-                  type="text"
-                  name="direccion"
-                  placeholder="Dirección"
-                  value={formData.direccion}
-                  onChange={handleChange}
-                  className="form-control mb-2"
-                  required
-                />
                 <input
                   type="text"
                   name="celular"
