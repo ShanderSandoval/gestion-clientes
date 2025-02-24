@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const ClienteTable = ({ clientes, onEdit, onDelete, onAdd }) => {
+const ClienteTable = ({ clientes, onEdit, onDelete, onAdd, onShowDirecciones }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const clientesPerPage = 10;
   const [searchTerm, setSearchTerm] = useState("");
@@ -47,12 +47,11 @@ const ClienteTable = ({ clientes, onEdit, onDelete, onAdd }) => {
                 <td>{cliente.direccion}</td>
                 <td>{cliente.celular}</td>
                 <td>
-                  <button className="btn btn-success btn-sm me-2" onClick={() => onEdit(cliente)}>
-                    Editar
-                  </button>
-                  <button className="btn btn-danger btn-sm" onClick={() => onDelete(cliente)}>
-                    Eliminar
-                  </button>
+                <button className="btn btn-info btn-sm me-2" onClick={() => onShowDirecciones(cliente)}>
+                  Ver Direcciones
+                </button>
+                <button className="btn btn-success btn-sm me-2" onClick={() => onEdit(cliente)}>Editar</button>
+                <button className="btn btn-danger btn-sm" onClick={() => onDelete(cliente)}>Eliminar</button>
                 </td>
               </tr>
             ))

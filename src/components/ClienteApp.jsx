@@ -4,38 +4,32 @@ import ClienteTable from "./ClienteTable";
 import AddClienteModal from "./AddClienteModal";
 import EditClienteModal from "./EditClienteModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
+import ClienteDireccionesModal from "./ClienteDireccionesModal"; // Importamos el modal de direcciones
 import Toast from "./Toast";
 
 // Obtener automáticamente la IP del backend basada en la ubicación del frontend
 const getBackendUrl = () => {
-  let host = window.location.hostname; // Obtiene la IP o dominio donde se ejecuta el frontend
-
-  // Si está en localhost, usa la IP local del backend
-  if (host === "localhost") {
-    return "http://localhost:8080/cm-app/clientes";
-  }
-
-  // Si el frontend está en otro equipo o en Docker, usa la misma IP del frontend
-  return `http://${host}:8080/cm-app/clientes`;
+  let host = window.location.hostname;
+  return host === "localhost" ? "http://localhost:8080/cm-app/clientes" : `http://${host}:8080/cm-app/clientes`;
 };
 
 const ClienteApp = () => {
-  const [API_URL, setApiUrl] = useState(getBackendUrl()); // Se obtiene la IP automáticamente
+  const [API_URL, setApiUrl] = useState(getBackendUrl());
   const [clientes, setClientes] = useState([]);
   const [selectedCliente, setSelectedCliente] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDireccionesModal, setShowDireccionesModal] = useState(false); // Estado para abrir el modal de direcciones
   const [toastMessage, setToastMessage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   // Obtener clientes del backend
   const fetchClientes = async () => {
     try {
-      console.log("Conectando a API en:", API_URL);
       const response = await axios.get(API_URL);
-      const sortedClientes = response.data.sort((a, b) => a.nombre.localeCompare(b.nombre));
-      setClientes(sortedClientes);
+      console.log("Clientes obtenidos:", response.data); // 🛠 Verifica si los datos llegan
+      setClientes(response.data);
     } catch (error) {
       console.error("Error al obtener los clientes", error);
     }
@@ -43,7 +37,7 @@ const ClienteApp = () => {
 
   useEffect(() => {
     fetchClientes();
-  }, [API_URL]); // Ejecutar cuando API_URL cambie
+  }, [API_URL]);
 
   // Eliminar cliente
   const handleDelete = async (id) => {
@@ -55,6 +49,12 @@ const ClienteApp = () => {
     } catch (error) {
       console.error("Error al eliminar el cliente", error);
     }
+  };
+
+  // Mostrar direcciones del cliente seleccionado
+  const handleShowDirecciones = (cliente) => {
+    setSelectedCliente(cliente);
+    setShowDireccionesModal(true);
   };
 
   const closeToast = () => setToastMessage(null);
@@ -82,7 +82,6 @@ const ClienteApp = () => {
         clientes={clientes.filter((cliente) =>
           cliente.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
           cliente.cedula.includes(searchTerm) ||
-          cliente.direccion.toLowerCase().includes(searchTerm.toLowerCase()) ||
           cliente.celular.includes(searchTerm)
         )}
         onEdit={(cliente) => {
@@ -93,6 +92,7 @@ const ClienteApp = () => {
           setSelectedCliente(cliente);
           setShowDeleteModal(true);
         }}
+        onShowDirecciones={handleShowDirecciones} // Pasamos la función para mostrar direcciones
       />
 
       {/* Modal para agregar cliente */}
@@ -126,6 +126,14 @@ const ClienteApp = () => {
           cliente={selectedCliente}
           onClose={() => setShowDeleteModal(false)}
           onConfirm={() => handleDelete(selectedCliente.idCliente)}
+        />
+      )}
+
+      {/* Modal para ver direcciones del cliente */}
+      {showDireccionesModal && selectedCliente && (
+        <ClienteDireccionesModal
+          cliente={selectedCliente}
+          onClose={() => setShowDireccionesModal(false)}
         />
       )}
 
