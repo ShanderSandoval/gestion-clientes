@@ -1,68 +1,50 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const ClienteDireccionesModal = ({ cliente, onClose }) => {
-  const [direcciones, setDirecciones] = useState([]);
+const ClienteDireccionesModal = ({ cliente, onClose, onUpdateCliente }) => {
+  const [direcciones, setDirecciones] = useState(cliente.direcciones);
+
   const [nuevaDireccion, setNuevaDireccion] = useState({
     direccion: "",
     ciudad: "",
     codigoPostal: "",
-    cliente: { idCliente: cliente.idCliente },
+    cliente: { idCliente: cliente.idCliente } // ✅ Relacionamos con el cliente
   });
-  const [errorCodigoPostal, setErrorCodigoPostal] = useState("");
-
-  // 🔄 Función para obtener las direcciones actualizadas desde la API
-  const cargarDirecciones = async () => {
-    try {
-      const response = await axios.get(`http://localhost:8080/cm-app/clientes/${cliente.idCliente}`);
-      setDirecciones(response.data.direcciones); // ✅ Se actualiza con los datos del backend
-    } catch (error) {
-      console.error("Error al obtener direcciones:", error);
-    }
-  };
 
   useEffect(() => {
-    cargarDirecciones(); // 🔄 Se ejecuta cada vez que se abre el modal
-  }, [cliente]); // 🔄 Se ejecuta cuando `cliente` cambia
+    setDirecciones(cliente.direcciones);
+  }, [cliente]);
 
-  // Manejar cambios en el formulario con validación del código postal
+  // Manejar cambios en el formulario
   const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    if (name === "codigoPostal") {
-      if (!/^\d*$/.test(value)) {
-        setErrorCodigoPostal("Solo se permiten números.");
-        return;
-      }
-      if (value.length > 6) {
-        setErrorCodigoPostal("Máximo 6 dígitos.");
-        return;
-      }
-      setErrorCodigoPostal("");
-    }
-
-    setNuevaDireccion({ ...nuevaDireccion, [name]: value });
+    setNuevaDireccion({ ...nuevaDireccion, [e.target.name]: e.target.value });
   };
 
-  // Agregar nueva dirección y recargar datos desde la API
+  // Agregar nueva dirección
   const handleAgregarDireccion = async (e) => {
     e.preventDefault();
-    if (direcciones.length >= 4 || errorCodigoPostal) return;
-
     try {
-      await axios.post("http://localhost:8080/cm-app/direcciones", nuevaDireccion);
-      await cargarDirecciones(); // 🔄 Recargar direcciones después de agregar
+      const response = await axios.post("http://localhost:8080/cm-app/direcciones", nuevaDireccion);
+      const nuevasDirecciones = [...direcciones, response.data];
+      setDirecciones(nuevasDirecciones);
       setNuevaDireccion({ direccion: "", ciudad: "", codigoPostal: "", cliente: { idCliente: cliente.idCliente } });
+
+      // 🔄 Llamar a la función para actualizar el cliente en `ClienteApp`
+      onUpdateCliente({ ...cliente, direcciones: nuevasDirecciones });
     } catch (error) {
       console.error("Error al agregar dirección:", error);
     }
   };
 
-  // Eliminar dirección y recargar datos desde la API
+  // Eliminar dirección
   const handleEliminarDireccion = async (idDetalleDireccion) => {
     try {
       await axios.delete(`http://localhost:8080/cm-app/direcciones/${idDetalleDireccion}`);
-      await cargarDirecciones(); // 🔄 Recargar direcciones después de eliminar
+      const nuevasDirecciones = direcciones.filter(dir => dir.idDetalleDireccion !== idDetalleDireccion);
+      setDirecciones(nuevasDirecciones);
+
+      // 🔄 Actualizar la lista de direcciones en ClienteApp
+      onUpdateCliente({ ...cliente, direcciones: nuevasDirecciones });
     } catch (error) {
       console.error("Error al eliminar dirección:", error);
     }
@@ -81,58 +63,28 @@ const ClienteDireccionesModal = ({ cliente, onClose }) => {
               {direcciones.length > 0 ? (
                 direcciones.map((dir) => (
                   <li key={dir.idDetalleDireccion} className="list-group-item d-flex justify-content-between align-items-center">
-                    📍 {dir.direccion}, {dir.ciudad}, {dir.codigoPostal}
-                    <button className="btn btn-danger btn-sm" onClick={() => handleEliminarDireccion(dir.idDetalleDireccion)}>❌</button>
+                    <span>📍 {dir.direccion}, {dir.ciudad}, {dir.codigoPostal}</span>
+                    <button className="btn btn-sm btn-danger" onClick={() => handleEliminarDireccion(dir.idDetalleDireccion)}>
+                      ❌
+                    </button>
                   </li>
                 ))
               ) : (
-                <p>No hay direcciones registradas</p>
+                <p className="text-muted">No hay direcciones registradas</p>
               )}
             </ul>
 
-            {/* 🔹 Formulario para agregar nueva dirección (se oculta si ya hay 4 direcciones) */}
+            {/* 🔹 Formulario para agregar nueva dirección */}
             {direcciones.length < 4 && (
               <>
                 <h6 className="mt-3">Agregar Nueva Dirección</h6>
                 <form onSubmit={handleAgregarDireccion}>
-                  <input
-                    type="text"
-                    name="direccion"
-                    placeholder="Dirección"
-                    value={nuevaDireccion.direccion}
-                    onChange={handleChange}
-                    className="form-control mb-2"
-                    required
-                  />
-                  <input
-                    type="text"
-                    name="ciudad"
-                    placeholder="Ciudad"
-                    value={nuevaDireccion.ciudad}
-                    onChange={handleChange}
-                    className="form-control mb-2"
-                    required
-                  />
-                  <input
-                    type="text"
-                    name="codigoPostal"
-                    placeholder="Código Postal"
-                    value={nuevaDireccion.codigoPostal}
-                    onChange={handleChange}
-                    className="form-control mb-2"
-                    required
-                  />
-                  {errorCodigoPostal && <p className="text-danger">{errorCodigoPostal}</p>}
-                  <button type="submit" className="btn btn-primary w-100" disabled={errorCodigoPostal}>
-                    Agregar Dirección
-                  </button>
+                  <input type="text" name="direccion" placeholder="Dirección" value={nuevaDireccion.direccion} onChange={handleChange} className="form-control mb-2" required />
+                  <input type="text" name="ciudad" placeholder="Ciudad" value={nuevaDireccion.ciudad} onChange={handleChange} className="form-control mb-2" required />
+                  <input type="text" name="codigoPostal" placeholder="Código Postal" value={nuevaDireccion.codigoPostal} onChange={handleChange} className="form-control mb-2" required maxLength="6" pattern="[0-9]*" />
+                  <button type="submit" className="btn btn-primary w-100">➕ Agregar Dirección</button>
                 </form>
               </>
-            )}
-
-            {/* Mensaje si se alcanzó el límite de direcciones */}
-            {direcciones.length >= 4 && (
-              <p className="text-danger mt-3">Se ha alcanzado el límite de 4 direcciones.</p>
             )}
           </div>
         </div>

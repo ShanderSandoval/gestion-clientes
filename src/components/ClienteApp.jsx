@@ -20,7 +20,7 @@ const ClienteApp = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showDireccionesModal, setShowDireccionesModal] = useState(false); // Estado para abrir el modal de direcciones
+  const [showDireccionesModal, setShowDireccionesModal] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -28,7 +28,6 @@ const ClienteApp = () => {
   const fetchClientes = async () => {
     try {
       const response = await axios.get(API_URL);
-      console.log("Clientes obtenidos:", response.data); // 🛠 Verifica si los datos llegan
       setClientes(response.data);
     } catch (error) {
       console.error("Error al obtener los clientes", error);
@@ -43,12 +42,19 @@ const ClienteApp = () => {
   const handleDelete = async (id) => {
     try {
       await axios.delete(`${API_URL}/${id}`);
-      fetchClientes();
+      setClientes(clientes.filter(cliente => cliente.idCliente !== id));
       setToastMessage("Cliente eliminado exitosamente");
       setShowDeleteModal(false);
     } catch (error) {
       console.error("Error al eliminar el cliente", error);
     }
+  };
+
+  // Actualizar cliente en la lista (cuando se agregan o eliminan direcciones)
+  const actualizarCliente = (clienteActualizado) => {
+    setClientes(prevClientes =>
+      prevClientes.map(cli => cli.idCliente === clienteActualizado.idCliente ? clienteActualizado : cli)
+    );
   };
 
   // Mostrar direcciones del cliente seleccionado
@@ -134,6 +140,7 @@ const ClienteApp = () => {
         <ClienteDireccionesModal
           cliente={selectedCliente}
           onClose={() => setShowDireccionesModal(false)}
+          onUpdateCliente={actualizarCliente} // ✅ Enviamos la función para actualizar en tiempo real
         />
       )}
 
