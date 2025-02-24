@@ -11,11 +11,19 @@ const ClienteDireccionesModal = ({ cliente, onClose }) => {
   });
   const [errorCodigoPostal, setErrorCodigoPostal] = useState("");
 
-  useEffect(() => {
-    if (cliente.direcciones) {
-      setDirecciones(cliente.direcciones);
+  // 🔄 Función para obtener las direcciones actualizadas desde la API
+  const cargarDirecciones = async () => {
+    try {
+      const response = await axios.get(`http://localhost:8080/cm-app/clientes/${cliente.idCliente}`);
+      setDirecciones(response.data.direcciones); // ✅ Se actualiza con los datos del backend
+    } catch (error) {
+      console.error("Error al obtener direcciones:", error);
     }
-  }, [cliente]);
+  };
+
+  useEffect(() => {
+    cargarDirecciones(); // 🔄 Se ejecuta cada vez que se abre el modal
+  }, [cliente]); // 🔄 Se ejecuta cuando `cliente` cambia
 
   // Manejar cambios en el formulario con validación del código postal
   const handleChange = (e) => {
@@ -30,35 +38,31 @@ const ClienteDireccionesModal = ({ cliente, onClose }) => {
         setErrorCodigoPostal("Máximo 6 dígitos.");
         return;
       }
-      setErrorCodigoPostal(""); // Si es válido, limpiamos el error
+      setErrorCodigoPostal("");
     }
 
     setNuevaDireccion({ ...nuevaDireccion, [name]: value });
   };
 
-  // Agregar nueva dirección a la API
+  // Agregar nueva dirección y recargar datos desde la API
   const handleAgregarDireccion = async (e) => {
     e.preventDefault();
-    if (direcciones.length >= 4) {
-      return; // No permitir agregar más de 4 direcciones
-    }
-    if (errorCodigoPostal) {
-      return; // No permitir agregar si hay error en el código postal
-    }
+    if (direcciones.length >= 4 || errorCodigoPostal) return;
+
     try {
-      const response = await axios.post("http://localhost:8080/cm-app/direcciones", nuevaDireccion);
-      setDirecciones((prevDirecciones) => [...prevDirecciones, response.data]);
+      await axios.post("http://localhost:8080/cm-app/direcciones", nuevaDireccion);
+      await cargarDirecciones(); // 🔄 Recargar direcciones después de agregar
       setNuevaDireccion({ direccion: "", ciudad: "", codigoPostal: "", cliente: { idCliente: cliente.idCliente } });
     } catch (error) {
       console.error("Error al agregar dirección:", error);
     }
   };
 
-  // Eliminar dirección de la API y actualizar el estado
+  // Eliminar dirección y recargar datos desde la API
   const handleEliminarDireccion = async (idDetalleDireccion) => {
     try {
       await axios.delete(`http://localhost:8080/cm-app/direcciones/${idDetalleDireccion}`);
-      setDirecciones((prevDirecciones) => prevDirecciones.filter(dir => dir.idDetalleDireccion !== idDetalleDireccion));
+      await cargarDirecciones(); // 🔄 Recargar direcciones después de eliminar
     } catch (error) {
       console.error("Error al eliminar dirección:", error);
     }
