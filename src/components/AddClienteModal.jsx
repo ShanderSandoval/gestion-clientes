@@ -104,14 +104,6 @@ const AddClienteModal = ({ onClose, onSave }) => {
                 {errors.cedula && <div className="invalid-feedback">{errors.cedula}</div>}
                 <input
                   type="text"
-                  name="direccion"
-                  placeholder="Dirección"
-                  value={formData.direccion}
-                  onChange={handleChange}
-                  className="form-control mb-2"
-                />
-                <input
-                  type="text"
                   name="celular"
                   placeholder="Celular"
                   value={formData.celular}
